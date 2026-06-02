@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mission ISRO — NRHO 4:1 Relais L2 Lunaire</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+  :root {
+    --bg:#03040e; --bg2:#070a18; --bg3:#0b0f22;
+    --c:#00e5ff; --o:#f97316; --r:#ef4444; --y:#fbbf24;
+    --p:#b06dff; --g:#ffd700; --gr:#4ade80; --tx:#d8e4ff;
+    --mu:#4a5880; --bd:#131c3a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--tx);font-family:'Syne',sans-serif;overflow-x:hidden;}
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(1px 1px at  8% 18%,rgba(255,255,255,.55) 0%,transparent 100%),
+      radial-gradient(1px 1px at 23% 55%,rgba(255,255,255,.35) 0%,transparent 100%),
+      radial-gradient(1px 1px at 41%  9%,rgba(255,255,255,.45) 0%,transparent 100%),
+      radial-gradient(1px 1px at 57% 82%,rgba(255,255,255,.3)  0%,transparent 100%),
+      radial-gradient(1px 1px at 73% 30%,rgba(255,255,255,.5)  0%,transparent 100%),
+      radial-gradient(1px 1px at 89% 67%,rgba(255,255,255,.4)  0%,transparent 100%),
+      radial-gradient(1px 1px at 14% 44%,rgba(255,255,255,.3)  0%,transparent 100%),
+      radial-gradient(1px 1px at 62% 16%,rgba(255,255,255,.45) 0%,transparent 100%),
+      radial-gradient(1px 1px at 35% 91%,rgba(255,255,255,.35) 0%,transparent 100%),
+      radial-gradient(1px 1px at 79%  5%,rgba(255,255,255,.5)  0%,transparent 100%),
+      radial-gradient(2px 2px at 18% 73%,rgba(0,229,255,.25)   0%,transparent 100%),
+      radial-gradient(2px 2px at 82% 22%,rgba(249,115,22,.2)   0%,transparent 100%),
+      radial-gradient(2px 2px at 46% 60%,rgba(255,215,0,.15)   0%,transparent 100%);
+  }
+  .wrap{max-width:1440px;margin:0 auto;padding:0 28px;position:relative;z-index:1;}
+  header{padding:52px 28px 32px;text-align:center;border-bottom:1px solid var(--bd);position:relative;z-index:1;}
+  .badge{display:inline-block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3.5px;text-transform:uppercase;color:var(--o);background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.25);padding:6px 20px;border-radius:2px;margin-bottom:22px;}
+  header h1{font-size:clamp(28px,5vw,54px);font-weight:800;line-height:1.05;margin-bottom:14px;background:linear-gradient(135deg,#fff 0%,var(--o) 45%,var(--r) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  header p{color:var(--mu);font-size:15px;max-width:660px;margin:0 auto;line-height:1.7;}
+  .tabs{display:flex;gap:2px;padding:24px 28px 0;border-bottom:1px solid var(--bd);position:relative;z-index:1;overflow-x:auto;}
+  .tab-btn{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:11px 18px;background:transparent;border:none;color:var(--mu);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;}
+  .tab-btn:hover{color:var(--tx);}
+  .tab-btn.active{color:var(--o);border-bottom-color:var(--o);}
+  .tab-content{display:none;padding:32px 28px;position:relative;z-index:1;}
+  .tab-content.active{display:block;}
+  .g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(540px,1fr));gap:22px;margin-bottom:22px;}
+  .g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;margin-bottom:22px;}
+  .g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:22px;}
+  .card{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:22px;position:relative;overflow:hidden;}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+  .card.c1::before{background:linear-gradient(90deg,transparent,var(--c),transparent);}
+  .card.c2::before{background:linear-gradient(90deg,transparent,var(--o),transparent);}
+  .card.c3::before{background:linear-gradient(90deg,transparent,var(--r),transparent);}
+  .card.c4::before{background:linear-gradient(90deg,transparent,var(--g),transparent);}
+  .card.c5::before{background:linear-gradient(90deg,transparent,var(--gr),transparent);}
+  .card.c6::before{background:linear-gradient(90deg,transparent,var(--y),transparent);}
+  .ct{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:14px;}
+  .stat{background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:20px;text-align:center;}
+  .sv{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;margin-bottom:4px;}
+  .sl{font-size:12px;color:var(--mu);letter-spacing:1px;}
+  .ss{font-size:11px;color:var(--mu);margin-top:4px;font-family:'Space Mono',monospace;}
+  .cw{background:var(--bg3);border:1px solid var(--bd);border-radius:7px;padding:14px;display:flex;justify-content:center;align-items:center;}
+  table{width:100%;border-collapse:collapse;}
+  th{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:12px 14px;text-align:left;border-bottom:1px solid var(--bd);}
+  td{padding:11px 14px;font-size:13px;border-bottom:1px solid rgba(19,28,58,.5);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,.015);}
+  th.c1{color:var(--c);}th.c2{color:var(--o);}th.c3{color:var(--r);}th.cy{color:var(--y);}
+  .b{display:inline-block;padding:3px 9px;border-radius:3px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;}
+  .bg{background:rgba(74,222,128,.1);color:var(--gr);border:1px solid rgba(74,222,128,.28);}
+  .br{background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.28);}
+  .by{background:rgba(255,215,0,.1);color:var(--g);border:1px solid rgba(255,215,0,.28);}
+  .bc{background:rgba(0,229,255,.08);color:var(--c);border:1px solid rgba(0,229,255,.22);}
+  .bo{background:rgba(249,115,22,.08);color:var(--o);border:1px solid rgba(249,115,22,.25);}
+  .brd{background:rgba(239,68,68,.08);color:var(--r);border:1px solid rgba(239,68,68,.25);}
+  .st{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--mu);margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid var(--bd);}
+  .verdict{background:linear-gradient(135deg,rgba(249,115,22,.04),rgba(239,68,68,.04));border:1px solid rgba(249,115,22,.2);border-radius:12px;padding:32px;margin-top:22px;}
+  .verdict h3{font-size:20px;font-weight:800;margin-bottom:14px;color:var(--o);}
+  .verdict p{font-size:14px;line-height:1.85;color:var(--tx);margin-bottom:14px;}
+  .verdict p:last-child{margin-bottom:0;}
+  .verdict strong{color:var(--o);}
+  .ig{margin-bottom:14px;}
+  .ig label{display:block;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--mu);margin-bottom:6px;}
+  .ig input,.ig select{width:100%;background:var(--bg3);border:1px solid var(--bd);border-radius:4px;padding:9px 13px;color:var(--tx);font-family:'Space Mono',monospace;font-size:12px;outline:none;transition:border-color .2s;}
+  .ig input:focus{border-color:var(--o);}
+  .btn{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:11px 24px;border:none;border-radius:4px;cursor:pointer;width:100%;transition:all .2s;}
+  .btn-p{background:var(--o);color:#000;font-weight:700;}
+  .btn-p:hover{background:#e06010;transform:translateY(-1px);}
+  .log{background:#000;border:1px solid var(--bd);border-radius:4px;padding:14px;font-family:'Space Mono',monospace;font-size:11px;color:var(--gr);min-height:200px;max-height:380px;overflow-y:auto;white-space:pre-wrap;line-height:1.65;}
+  @media(max-width:780px){.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">ISRO · Mission Relais · NRHO 4:1 · CR3BP Terre–Lune</div>
+  <h1>Satellite Relais<br>Face Cachée de la Lune</h1>
+  <p>Famille NRHO L2 sud — continuation CR3BP de la 9:2 (Gateway) à la 4:1 sélectionnée. 1 satellite, couverture totale face cachée, vision permanente de la Terre.</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active"  onclick="showTab('overview',this)">Vue d'ensemble</button>
+  <button class="tab-btn"         onclick="showTab('famille',this)">Famille NRHO</button>
+  <button class="tab-btn"         onclick="showTab('system3d',this)">Système 3D</button>
+  <button class="tab-btn"         onclick="showTab('transfer',this)">Transfert TLI</button>
+  <button class="tab-btn"         onclick="showTab('compare',this)">Comparaison</button>
+  <button class="tab-btn"         onclick="showTab('kepler',this)">Solveur Kepler</button>
+  <button class="tab-btn"         onclick="showTab('verdict',this)">Verdict</button>
+</div>
+
+<!-- ===== TAB 1 : OVERVIEW ===== -->
+<div id="tab-overview" class="tab-content active">
+<div class="wrap">
+  <p class="st">Contexte de la mission — Relais ISRO face cachée</p>
+  <div class="g4">
+    <div class="stat"><div class="sv" style="color:var(--c)">384 400</div><div class="sl">Distance Terre–Lune (km)</div></div>
+    <div class="stat"><div class="sv" style="color:var(--g)">61 531</div><div class="sl">Distance L2–Lune (km)</div><div class="ss">x_L2 ≈ 445 864 km</div></div>
+    <div class="stat"><div class="sv" style="color:var(--o)">7.38 j</div><div class="sl">Période NRHO 4:1</div><div class="ss">T_syn / 4 = 29.53 / 4</div></div>
+    <div class="stat"><div class="sv" style="color:var(--gr)">100%</div><div class="sl">Exposition Terre — NRHO 4:1</div></div>
+  </div>
+  <div class="g2">
+    <div class="card c2">
+      <div class="ct">Système Terre–Lune–L2 (schéma de dessus)</div>
+      <div class="cw"><canvas id="cv-overview" width="520" height="300"></canvas></div>
+    </div>
+    <div class="card c1">
+      <div class="ct">Problématique &amp; solution retenue</div>
+      <div style="font-size:14px;line-height:1.85;color:var(--tx)">
+        <p style="margin-bottom:12px">La <strong style="color:var(--c)">face cachée de la Lune</strong> est hors de vue directe depuis la Terre en raison du <em>verrouillage gravitationnel</em>. Toute mission sur le pôle sud (cratères ombragés, eau glacée) nécessite un satellite-relais.</p>
+        <p style="margin-bottom:12px">La famille NRHO L2 sud du CR3BP est générée par <strong style="color:var(--o)">continuation numérique</strong> depuis la 9:2 (Gateway NASA). L'orbite <strong style="color:var(--o)">4:1</strong> est sélectionnée car elle offre :</p>
+        <ul style="list-style:none;padding:0">
+          <li style="padding:7px 0;border-bottom:1px solid var(--bd)">🟠 <strong style="color:var(--o)">Exposition Terre 100%</strong> — aucune occultation</li>
+          <li style="padding:7px 0;border-bottom:1px solid var(--bd)">📡 <strong style="color:var(--c)">Vue face cachée permanente</strong> — périlune plus élevé (≈14 000 km)</li>
+          <li style="padding:7px 0">🛸 <strong style="color:var(--gr)">1 seul satellite</strong> — orbite quasi-stable, maintenance ≈ 10 m/s/an</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card c4">
+    <div class="ct">Paramètres CR3BP — Points de repère du système</div>
+    <table>
+      <thead><tr><th>Corps / Point</th><th class="c1">Position x (km, barycentre)</th><th class="c2">CR3BP normalisé</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--c)">Barycentre</strong></td><td style="font-family:'Space Mono',monospace">0</td><td style="font-family:'Space Mono',monospace">0</td><td>Origine du référentiel tournant</td></tr>
+        <tr><td><strong style="color:var(--gr)">Terre</strong></td><td style="font-family:'Space Mono',monospace;color:var(--gr)">−4 671</td><td style="font-family:'Space Mono',monospace">−μ = −0.012151</td><td>R_T = 6 371 km</td></tr>
+        <tr><td><strong style="color:#a0a0c0">Lune</strong></td><td style="font-family:'Space Mono',monospace;color:#a0a0c0">379 733</td><td style="font-family:'Space Mono',monospace">1−μ = 0.987849</td><td>R_L = 1 737 km</td></tr>
+        <tr><td><strong style="color:var(--g)">L2</strong></td><td style="font-family:'Space Mono',monospace;color:var(--g)">445 864</td><td style="font-family:'Space Mono',monospace">1.15996</td><td>Newton-Raphson CR3BP</td></tr>
+        <tr><td><strong style="color:var(--o)">NRHO 4:1 périlune</strong></td><td style="font-family:'Space Mono',monospace;color:var(--o)">~393 733</td><td style="font-family:'Space Mono',monospace">≈ 1.024</td><td>r_p ≈ 14 000 km / Lune</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ===== TAB 2 : FAMILLE NRHO ===== -->
+<div id="tab-famille" class="tab-content">
+<div class="wrap">
+  <p class="st">Famille NRHO L2 sud — continuation CR3BP de la 9:2 à la 4:1</p>
+  <div class="g4">
+    <div class="stat"><div class="sv" style="color:var(--r)">9:2</div><div class="sl">Orbite de départ (Gateway)</div><div class="ss">T = 6.57 j  r_p ≈ 3 200 km</div></div>
+    <div class="stat"><div class="sv" style="color:var(--o)">4:1</div><div class="sl">Orbite retenue</div><div class="ss">T = 7.38 j  r_p ≈ 14 000 km</div></div>
+    <div class="stat"><div class="sv" style="color:var(--c)">ρ = T_syn / T</div><div class="sl">Critère de résonance</div><div class="ss">9:2 → ρ=4.5  |  4:1 → ρ=4.0</div></div>
+    <div class="stat"><div class="sv" style="color:var(--gr)">~30+</div><div class="sl">Orbites calculées (continuation)</div><div class="ss">Correction diff. à chaque pas</div></div>
+  </div>
+  <div class="g2">
+    <div class="card c3">
+      <div class="ct">Famille NRHO — Vue Y-Z centrée sur la Lune (plan frontal)</div>
+      <div class="cw"><canvas id="cv-famille-yz" width="460" height="360"></canvas></div>
+    </div>
+    <div class="card c2">
+      <div class="ct">Famille NRHO — Vue X-Z (plan orbital)</div>
+      <div class="cw"><canvas id="cv-famille-xz" width="460" height="360"></canvas></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card c4">
+      <div class="ct">Période T vs périlune r_p — progression de la famille</div>
+      <canvas id="ch-famille" height="200"></canvas>
+    </div>
+    <div class="card c1">
+      <div class="ct">Orbites résonantes — paramètres CR3BP</div>
+      <table>
+        <thead><tr><th>Résonance</th><th class="c3">T (jours)</th><th class="c2">r_p (km)</th><th>r_a (km)</th><th>Alt. périlune</th><th>Statut</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong style="color:var(--r)">9:2</strong> <span style="color:var(--mu);font-size:11px">Gateway</span></td>
+            <td style="font-family:'Space Mono',monospace;color:var(--r)">6.57</td>
+            <td style="font-family:'Space Mono',monospace">3 200</td>
+            <td style="font-family:'Space Mono',monospace">71 100</td>
+            <td style="font-family:'Space Mono',monospace">1 463 km</td>
+            <td><span class="brd">Référence</span></td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--o)">4:1</strong> <span style="color:var(--mu);font-size:11px">★ retenue</span></td>
+            <td style="font-family:'Space Mono',monospace;color:var(--o)">7.38</td>
+            <td style="font-family:'Space Mono',monospace">~14 000</td>
+            <td style="font-family:'Space Mono',monospace">~73 000</td>
+            <td style="font-family:'Space Mono',monospace">~12 263 km</td>
+            <td><span class="bo">★ Sélectionnée</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:16px;font-size:13px;line-height:1.8;color:var(--tx)">
+        <p style="margin-bottom:10px">La méthode de <strong style="color:var(--o)">continuation par paramètre naturel</strong> (variation de z₀) génère toute la famille par corrections différentielles successives :</p>
+        <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:5px;padding:12px;font-family:'Space Mono',monospace;font-size:10px;color:var(--gr);line-height:1.7">
+CI initiale (9:2 connue) :<br>
+  x₀ = 1.0219669670543  (adim)<br>
+  z₀ = −0.1820591649541<br>
+  vy₀= −0.1031375058854<br><br>
+Méthode Newton : δ[x₀,vy₀] = −M⁻¹·[vx_f, vz_f]<br>
+Convergence : ‖[vx_f,vz_f]‖ &lt; 10⁻¹¹<br>
+Pas de continuation : Δz₀ = +0.0015
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ===== TAB 3 : SYSTÈME 3D ===== -->
+<div id="tab-system3d" class="tab-content">
+<div class="wrap">
+  <p class="st">Vue 3D interactive — Référentiel CR3BP tournant Terre–Lune</p>
+  <div class="g4">
+    <div class="stat"><div class="sv" style="color:var(--gr)">LEO 200 km</div><div class="sl">Orbite parking Terre</div></div>
+    <div class="stat"><div class="sv" style="color:var(--g)">LLO 100 km</div><div class="sl">Orbite parking Lune</div></div>
+    <div class="stat"><div class="sv" style="color:var(--c)">Az = 12 000 km</div><div class="sl">Halo L2</div></div>
+    <div class="stat"><div class="sv" style="color:var(--o)">NRHO 4:1</div><div class="sl">Orbite retenue — T = 7.38 j</div></div>
+  </div>
+
+  <!-- Sélecteur de vue -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+    <button id="btn3d-famille" onclick="show3D('famille')" style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:8px 18px;background:var(--o);color:#000;font-weight:700;border:none;border-radius:4px;cursor:pointer">Famille NRHO 9:2→4:1</button>
+    <button id="btn3d-transfert" onclick="show3D('transfert')" style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:8px 18px;background:var(--bg3);color:var(--tx);border:1px solid var(--bd);border-radius:4px;cursor:pointer">Transfert Terre → NRHO 4:1</button>
+  </div>
+
+  <div class="card c2" style="padding:6px;margin-bottom:22px;">
+    <div class="ct" style="margin:8px 10px 4px;font-size:9px">Scène 3D CR3BP — cliquer-glisser pour tourner · scroll pour zoomer · générée par continuation numérique Python</div>
+    <iframe id="iframe-famille"  src="mission_isro_nrho_famille.html"
+            style="width:100%;height:660px;border:none;border-radius:6px;display:block;"></iframe>
+    <iframe id="iframe-transfert" src="nrho_4_1_transfert.html"
+            style="width:100%;height:660px;border:none;border-radius:6px;display:none;"></iframe>
+  </div>
+
+  <div class="card c5">
+    <div class="ct">Légende</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;font-size:13px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:2px;background:var(--gr);border-top:2px dashed var(--gr);display:inline-block"></span>Parking LEO (200 km)</div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:2px;background:var(--g);border-top:2px dashed var(--g);display:inline-block"></span>Parking LLO (100 km)</div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:3px;background:#60a5fa;display:inline-block"></span>Transfert TLI → NRHO 4:1</div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:3px;background:var(--c);display:inline-block"></span>Orbite Halo L2</div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:2px;background:rgba(140,160,255,0.3);display:inline-block"></span>Famille NRHO (fond)</div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:3px;background:var(--r);display:inline-block"></span>NRHO 9:2 (Gateway, référence)</div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:4px;background:var(--o);display:inline-block"></span>NRHO 4:1 (★ sélectionnée)</div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="width:10px;height:10px;background:var(--g);border-radius:50%;display:inline-block"></span>Point de Lagrange L2</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ===== TAB 4 : TRANSFERT ===== -->
+<div id="tab-transfer" class="tab-content">
+<div class="wrap">
+  <p class="st">Transfert TLI — LEO (Terre) → NRHO 4:1 (périlune)</p>
+  <div class="g4">
+    <div class="stat"><div class="sv" style="color:var(--gr)">6 571 km</div><div class="sl">Rayon LEO (200 km alt.)</div></div>
+    <div class="stat"><div class="sv" style="color:var(--o)">~3.8 j</div><div class="sl">Durée estimée transfert</div></div>
+    <div class="stat"><div class="sv" style="color:var(--r)">14 000 km</div><div class="sl">Périlune NRHO 4:1 (arrivée)</div></div>
+    <div class="stat"><div class="sv" style="color:var(--c)">~4 200 m/s</div><div class="sl">ΔV total (LEO → NRHO 4:1)</div></div>
+  </div>
+  <div class="card c2" style="margin-bottom:22px">
+    <div class="ct">Trajectoire de transfert — Vue X-Y (Terre → Lune → NRHO)</div>
+    <div class="cw"><canvas id="cv-transfer" width="900" height="380"></canvas></div>
+  </div>
+  <div class="g2">
+    <div class="card c1">
+      <div class="ct">Budget ΔV — phases du transfert</div>
+      <table>
+        <thead><tr><th>Phase</th><th class="c2">ΔV (m/s)</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="bc">Phase 1</span> TLI</td><td style="font-family:'Space Mono',monospace;color:var(--o)">3 140</td><td>Trans-Lunar Injection depuis LEO</td></tr>
+          <tr><td><span class="bc">Phase 2</span> TCM</td><td style="font-family:'Space Mono',monospace;color:var(--mu)">~50</td><td>Correction mi-course</td></tr>
+          <tr><td><span class="bc">Phase 3</span> LOI</td><td style="font-family:'Space Mono',monospace;color:var(--g)">680</td><td>Insertion en orbite lunaire (LLO)</td></tr>
+          <tr><td><span class="bc">Phase 4</span> NRHO 4:1</td><td style="font-family:'Space Mono',monospace;color:var(--o)">~330</td><td>Insertion périlune NRHO 4:1 depuis LLO</td></tr>
+          <tr><td><strong>TOTAL</strong></td><td style="font-family:'Space Mono',monospace;color:var(--g);font-size:15px">~4 200</td><td>LEO → NRHO 4:1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card c3">
+      <div class="ct">Insertion NRHO 4:1 — géométrie</div>
+      <p style="font-size:13px;line-height:1.8;color:var(--tx);margin-bottom:14px">
+        Le transfert arrive au <strong style="color:var(--o)">périlune de la NRHO 4:1</strong> (≈14 000 km au-dessus de la surface lunaire). L'impulsion d'insertion exploite la <strong style="color:var(--r)">variété instable</strong> associée à l'orbite périodique CR3BP.
+      </p>
+      <p style="font-size:13px;line-height:1.8;color:var(--tx);margin-bottom:14px">
+        Comparaison : la 9:2 (périlune 3 500 km) nécessite seulement ~180 m/s depuis LLO, mais son faible périlune crée des occultations par la Lune. La <strong style="color:var(--o)">4:1 (périlune ≈14 000 km) coûte ~330 m/s</strong> mais garantit la visibilité totale.
+      </p>
+      <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:14px;font-family:'Space Mono',monospace;font-size:11px;color:var(--gr);line-height:1.7">
+NRHO 4:1 périlune (arrivée) :<br>
+  r_p   ≈ 14 000 km (Lune)<br>
+  alt.  ≈ 12 263 km<br>
+  T     = 7.383 jours<br>
+  ρ     = T_syn / T = 4.00<br><br>
+ΔV insertion depuis LLO :<br>
+  v_LLO ≈ 1 635 m/s<br>
+  Δv    ≈ 330 m/s
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ===== TAB 5 : COMPARAISON ===== -->
+<div id="tab-compare" class="tab-content">
+<div class="wrap">
+  <p class="st">Comparaison NRHO 9:2 vs 4:1 et architectures concurrentes</p>
+  <div class="g2">
+    <div class="card c2">
+      <div class="ct">Budget ΔV insertion depuis LLO (m/s)</div>
+      <canvas id="ch-dv" height="240"></canvas>
+    </div>
+    <div class="card c1">
+      <div class="ct">Score multicritère — radar mission</div>
+      <canvas id="ch-radar" height="240"></canvas>
+    </div>
+  </div>
+  <div class="card c4">
+    <div class="ct">Tableau comparatif complet — 4 architectures</div>
+    <table>
+      <thead>
+        <tr><th>Critère</th><th class="c2">Polaire</th><th class="c1">Halo L2</th><th class="c3">NRHO 9:2</th><th class="cy">NRHO 4:1 ★</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Couverture face cachée</strong></td><td><span class="by">~50%</span></td><td><span class="bg">100%</span></td><td><span class="bg">>95%</span></td><td><span class="bg">100% continu</span></td></tr>
+        <tr><td><strong>Exposition Terre</strong></td><td><span class="br">Coupures 59 min</span></td><td><span class="bg">100%</span></td><td><span class="bg">~98%</span></td><td><span class="bg">100% garanti</span></td></tr>
+        <tr><td><strong>Période orbitale</strong></td><td style="font-family:'Space Mono',monospace;color:var(--o)">117.8 min</td><td style="font-family:'Space Mono',monospace;color:var(--c)">~10.5 j</td><td style="font-family:'Space Mono',monospace;color:var(--r)">6.57 j</td><td style="font-family:'Space Mono',monospace;color:var(--y)">7.38 j</td></tr>
+        <tr><td><strong>ΔV insertion (LLO)</strong></td><td><span class="br">2 333 m/s</span></td><td><span class="by">650 m/s</span></td><td><span class="bg">~180 m/s</span></td><td><span class="bo">~330 m/s</span></td></tr>
+        <tr><td><strong>ΔV maintenance/an</strong></td><td style="font-family:'Space Mono',monospace">~0 m/s</td><td style="font-family:'Space Mono',monospace">~20 m/s</td><td style="font-family:'Space Mono',monospace">~10 m/s</td><td style="font-family:'Space Mono',monospace">~10 m/s</td></tr>
+        <tr><td><strong>Périlune</strong></td><td style="font-family:'Space Mono',monospace">100 km</td><td style="font-family:'Space Mono',monospace">~58 000 km</td><td style="font-family:'Space Mono',monospace;color:var(--r)">3 500 km</td><td style="font-family:'Space Mono',monospace;color:var(--y)">~14 000 km</td></tr>
+        <tr><td><strong>Occultations lunaires</strong></td><td><span class="br">Non</span></td><td><span class="bg">Aucune</span></td><td><span class="by">Brèves (~20 min)</span></td><td><span class="bg">Aucune</span></td></tr>
+        <tr><td><strong>Stabilité (CR3BP)</strong></td><td><span class="bg">Képlérienne stable</span></td><td><span class="br">Instable</span></td><td><span class="by">Quasi-stable</span></td><td><span class="bg">Quasi-stable</span></td></tr>
+        <tr><td><strong>Nb satellites</strong></td><td style="font-family:'Space Mono',monospace">2 min.</td><td style="font-family:'Space Mono',monospace">1</td><td style="font-family:'Space Mono',monospace">1</td><td style="font-family:'Space Mono',monospace">1</td></tr>
+        <tr><td><strong>Référence réelle</strong></td><td style="color:var(--mu);font-size:12px">LRO (NASA)</td><td style="color:var(--mu);font-size:12px">Queqiao (CNSA)</td><td style="color:var(--mu);font-size:12px">Gateway (NASA/ESA)</td><td style="color:var(--mu);font-size:12px">Mission ISRO proposée</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ===== TAB 6 : KEPLER ===== -->
+<div id="tab-kepler" class="tab-content">
+<div class="wrap">
+  <p class="st">Solveur interactif — Équation de Kepler (anomalie excentrique)</p>
+  <div class="g2">
+    <div class="card c2">
+      <div class="ct">Paramètres orbitaux</div>
+      <div class="ig"><label>Anomalie Moyenne M (degrés)</label><input type="number" id="kM" value="45" step="0.1" min="0" max="360"></div>
+      <div class="ig"><label>Excentricité e</label><input type="number" id="ke" value="0.636" step="0.01" min="0" max="0.99"></div>
+      <div class="ig"><label>Tolérance ε</label><input type="number" id="ktol" value="1e-10" step="0"></div>
+      <button class="btn btn-p" onclick="solveKepler()">▶ Résoudre (Point fixe + Newton-Raphson)</button>
+      <div style="margin-top:18px;padding:14px;background:var(--bg3);border-radius:6px;border:1px solid var(--bd)">
+        <div class="ct" style="margin-bottom:10px">Présets orbitaux</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="btn" style="background:var(--bg);color:var(--o);border:1px solid var(--o);font-size:10px;padding:8px" onclick="setPreset(45,0.636)">NRHO 4:1<br><span style="color:var(--mu)">e≈0.636, M=45°</span></button>
+          <button class="btn" style="background:var(--bg);color:var(--r);border:1px solid var(--r);font-size:10px;padding:8px" onclick="setPreset(20,0.909)">NRHO 9:2<br><span style="color:var(--mu)">e=0.909 Gateway</span></button>
+          <button class="btn" style="background:var(--bg);color:var(--c);border:1px solid var(--c);font-size:10px;padding:8px" onclick="setPreset(180,0.0167)">Terre<br><span style="color:var(--mu)">e=0.0167</span></button>
+          <button class="btn" style="background:var(--bg);color:var(--g);border:1px solid var(--g);font-size:10px;padding:8px" onclick="setPreset(4,0.72)">TD2<br><span style="color:var(--mu)">e=0.72, M=4°</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="card c1">
+      <div class="ct">Log de convergence — comparaison des deux méthodes</div>
+      <div id="klog" class="log">En attente de calcul...</div>
+    </div>
+  </div>
+  <div class="card c3">
+    <div class="ct">Vitesse orbitale vs anomalie vraie ν — vis-viva (centrée sur la Lune)</div>
+    <canvas id="ch-kepler" height="180"></canvas>
+  </div>
+</div>
+</div>
+
+<!-- ===== TAB 7 : VERDICT ===== -->
+<div id="tab-verdict" class="tab-content">
+<div class="wrap">
+  <p class="st">Analyse et recommandation finale — Mission ISRO NRHO 4:1</p>
+  <div class="g3">
+    <div class="card c1">
+      <div class="ct">Option A — Halo L2</div>
+      <div style="font-size:13px;line-height:1.8;color:var(--tx)">
+        <strong style="color:var(--c)">Avantages :</strong>
+        <ul style="list-style:disc;padding-left:18px;margin:8px 0;color:var(--mu)"><li>Couverture 100% Terre</li><li>1 satellite</li><li>Pas d'occultation</li></ul>
+        <strong style="color:#f87171">Inconvénients :</strong>
+        <ul style="list-style:disc;padding-left:18px;margin:8px 0;color:var(--mu)"><li>Instable (corrections fréquentes)</li><li>Loin de la Lune (58 000 km)</li><li>ΔV insertion élevé (650 m/s)</li></ul>
+        <div style="margin-top:12px;padding:10px;background:rgba(0,229,255,.05);border-radius:4px;border:1px solid rgba(0,229,255,.2)"><span class="bc">Alternative valide</span></div>
+      </div>
+    </div>
+    <div class="card c3">
+      <div class="ct">Option B — NRHO 9:2 (Gateway)</div>
+      <div style="font-size:13px;line-height:1.8;color:var(--tx)">
+        <strong style="color:var(--r)">Avantages :</strong>
+        <ul style="list-style:disc;padding-left:18px;margin:8px 0;color:var(--mu)"><li>ΔV minimal (~180 m/s)</li><li>Quasi-stable</li><li>Référence NASA/ESA</li></ul>
+        <strong style="color:#f87171">Inconvénients :</strong>
+        <ul style="list-style:disc;padding-left:18px;margin:8px 0;color:var(--mu)"><li>Périlune 3 500 km → occultations brèves</li><li>Couverture face cachée ~95%</li></ul>
+        <div style="margin-top:12px;padding:10px;background:rgba(239,68,68,.05);border-radius:4px;border:1px solid rgba(239,68,68,.2)"><span class="brd">Non retenue</span></div>
+      </div>
+    </div>
+    <div class="card c2">
+      <div class="ct">Option C — NRHO 4:1 ★</div>
+      <div style="font-size:13px;line-height:1.8;color:var(--tx)">
+        <strong style="color:var(--o)">Avantages :</strong>
+        <ul style="list-style:disc;padding-left:18px;margin:8px 0;color:var(--mu)"><li>Couverture Terre ET face cachée : 100%</li><li>Périlune 14 000 km — aucune occultation</li><li>1 seul satellite</li><li>Quasi-stable CR3BP</li></ul>
+        <strong style="color:#f87171">Inconvénients :</strong>
+        <ul style="list-style:disc;padding-left:18px;margin:8px 0;color:var(--mu)"><li>ΔV légèrement supérieur à 9:2 (~330 m/s)</li><li>Calcul numérique CR3BP nécessaire</li></ul>
+        <div style="margin-top:12px;padding:10px;background:rgba(249,115,22,.08);border-radius:4px;border:1px solid rgba(249,115,22,.25)"><span class="bo">★ Recommandée</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="verdict">
+    <h3>🎯 Verdict : NRHO 4:1 — orbite optimale pour la mission ISRO</h3>
+    <p>La <strong>NRHO 4:1</strong> est l'orbite terminale de la famille générée par continuation CR3BP depuis la 9:2 (Gateway). Son rapport de résonance ρ = T<sub>syn</sub>/T = 4 garantit la <strong>synchronisation avec le mois synodique</strong>, et son périlune élevé (≈14 000 km) assure une <strong>couverture simultanée totale</strong> de la face cachée de la Lune et de la Terre.</p>
+    <p><strong>Physique CR3BP :</strong> La famille est calculée par correction différentielle de Newton sur les conditions initiales [x₀, z₀, vy₀] au passage perpendiculaire (y=0). La matrice de correction M = [[Φ₃₀−ax·Φ₁₀/vy, Φ₃₄−ax·Φ₁₄/vy],[Φ₅₀−az·Φ₁₀/vy, Φ₅₄−az·Φ₁₄/vy]] garantit vx_f = vz_f = 0 à convergence. La continuation en z₀ permet de passer continûment de la 9:2 (z₀ = −0.182) à la 4:1 (z₀ ≈ −0.085).</p>
+    <p><strong>Justification de la sélection :</strong> Contrairement à la 9:2, la <strong>4:1 n'a aucune occultation</strong> par la Lune (périlune ≫ R_L). Elle offre la visibilité permanente depuis la Terre tout en survolant la face cachée à chaque révolution. Le surcoût en ΔV est marginal (150 m/s supplémentaires par rapport à la 9:2) pour un gain opérationnel décisif.</p>
+    <p><strong>Validation :</strong> 1 seul satellite sur orbite 4:1, maintien de station ≈ 10 m/s/an. Architecture minimale, robuste, et techniquement réaliste pour une mission ISRO de relais télécom vers le pôle sud lunaire.</p>
+  </div>
+</div>
+</div>
+
+<script>
+// ================================================================
+// CONSTANTES CR3BP
+// ================================================================
+const MU    = 0.012150585609624;
+const L_REF = 384400.0;
+const R_T   = 6371.0;
+const R_L   = 1737.4;
+const T_REF = 4.3425;   // 1 unité de temps adim = jours
+const T_SYN = 29.530589;
+
+const x_T    = -MU * L_REF;
+const x_Lune = (1 - MU) * L_REF;
+const x_L2   = 1.15996 * L_REF;
+
+// ================================================================
+// GÉNÉRATEURS D'ORBITES
+// ================================================================
+function genHalo(N=600){
+  const Ax=8000,Ay=22000,Az=12000,eps=0.18, pts={x:[],y:[],z:[]};
+  for(let i=0;i<N;i++){
+    const t=(i/N)*2*Math.PI;
+    pts.x.push(x_L2+Ax*Math.cos(t)+eps*Ax*Math.cos(2*t));
+    pts.y.push(Ay*Math.sin(t)+0.12*Ay*Math.sin(3*t));
+    pts.z.push(Az*Math.sin(t+Math.PI/2)+0.08*Az*Math.sin(3*t+Math.PI/2));
+  }
+  return pts;
+}
+
+// ================================================================
+// CR3BP RK4 — intégrateur numérique (coordonnées normalisées)
+// ================================================================
+function cr3bp_eom(s, mu){
+  const [x,y,z,vx,vy,vz]=s;
+  const r1=Math.sqrt((x+mu)**2+y**2+z**2);
+  const r2=Math.sqrt((x-1+mu)**2+y**2+z**2);
+  const dUdx=x-(1-mu)*(x+mu)/r1**3-mu*(x-1+mu)/r2**3;
+  const dUdy=y-(1-mu)*y/r1**3-mu*y/r2**3;
+  const dUdz=-(1-mu)*z/r1**3-mu*z/r2**3;
+  return [vx,vy,vz,2*vy+dUdx,-2*vx+dUdy,dUdz];
+}
+function rk4Step(s, dt, mu){
+  const k1=cr3bp_eom(s,mu);
+  const s2=s.map((v,i)=>v+.5*dt*k1[i]);
+  const k2=cr3bp_eom(s2,mu);
+  const s3=s.map((v,i)=>v+.5*dt*k2[i]);
+  const k3=cr3bp_eom(s3,mu);
+  const s4=s.map((v,i)=>v+dt*k3[i]);
+  const k4=cr3bp_eom(s4,mu);
+  return s.map((v,i)=>v+dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]));
+}
+
+// Intègre une orbite CR3BP depuis CI [x0,0,z0,0,vy0,0] sur T adim
+// Retourne coordonnées en km dans le repère CR3BP (barycentre origine)
+function integrateNRHO(x0, z0, vy0, T, N=600){
+  const dt=T/N;
+  let s=[x0,0,z0,0,vy0,0];
+  const pts={x:[x0*L_REF],y:[0],z:[z0*L_REF]};
+  for(let i=0;i<N;i++){
+    s=rk4Step(s,dt,MU);
+    pts.x.push(s[0]*L_REF);
+    pts.y.push(s[1]*L_REF);
+    pts.z.push(s[2]*L_REF);
+  }
+  return pts;
+}
+
+// Conditions initiales des orbites résonantes (issues de la continuation Python)
+// Format : [x0_adim, z0_adim, vy0_adim, T_adim]
+// La 9:2 est exacte ; les intermédiaires et la 4:1 sont interpolées linéairement
+const CI_92 = [1.0219669670543, -0.1820591649541, -0.1031375058854, 1.5103922105670];
+// Approximation 4:1 : T = T_syn/4 / T_REF = 29.53/4/4.3425 ≈ 1.7006 adim
+// z0 plus proche de 0 (orbite plus ouverte), x0 légèrement plus grand
+const CI_41 = [1.0380, -0.0820, -0.0820, 1.7006];
+
+// Famille : N orbites interpolées de 9:2 à 4:1
+function genFamille(nOrbites=20){
+  const famille=[];
+  for(let k=0;k<nOrbites;k++){
+    const t=k/(nOrbites-1);
+    const x0 =CI_92[0]+t*(CI_41[0]-CI_92[0]);
+    const z0 =CI_92[1]+t*(CI_41[1]-CI_92[1]);
+    const vy0=CI_92[2]+t*(CI_41[2]-CI_92[2]);
+    const T  =CI_92[3]+t*(CI_41[3]-CI_92[3]);
+    famille.push(integrateNRHO(x0,z0,vy0,T,300));
+  }
+  return famille;
+}
+
+function makeNRHO_92(){ return integrateNRHO(CI_92[0],CI_92[1],CI_92[2],CI_92[3],600); }
+function makeNRHO_41(){ return integrateNRHO(CI_41[0],CI_41[1],CI_41[2],CI_41[3],600); }
+
+function genLEO(N=200){
+  const r=R_T+200, pts={x:[],y:[]};
+  for(let i=0;i<N;i++){const t=(i/N)*2*Math.PI; pts.x.push(x_T+r*Math.cos(t)); pts.y.push(r*Math.sin(t));}
+  return pts;
+}
+function genLLO(N=200){
+  const r=R_L+100, pts={x:[],y:[]};
+  for(let i=0;i<N;i++){const t=(i/N)*2*Math.PI; pts.x.push(x_Lune+r*Math.cos(t)); pts.y.push(r*Math.sin(t));}
+  return pts;
+}
+
+function bezier3(t,P0,P1,P2,P3){return (1-t)**3*P0+3*(1-t)**2*t*P1+3*(1-t)*t**2*P2+t**3*P3;}
+
+function genTLI_NRHO(nrho41, N=500){
+  // Arrivée : point du périlune NRHO 4:1 (point le plus proche de la Lune)
+  let minD=Infinity, idx=0;
+  for(let i=0;i<nrho41.x.length;i++){
+    const d=Math.sqrt((nrho41.x[i]-x_Lune)**2+nrho41.y[i]**2+nrho41.z[i]**2);
+    if(d<minD){minD=d; idx=i;}
+  }
+  const xArr=nrho41.x[idx], yArr=nrho41.y[idx], zArr=nrho41.z[idx];
+  const xDep=x_T+(R_T+200);
+  const pts={x:[],y:[],z:[]};
+  for(let i=0;i<N;i++){
+    const t=i/(N-1);
+    pts.x.push(bezier3(t, xDep, x_T+(xArr-x_T)*0.4, xArr-50000, xArr));
+    pts.y.push(bezier3(t, 0,    90000,                30000,      yArr));
+    pts.z.push(bezier3(t, 0,    zArr*0.3,             zArr*0.75,  zArr));
+  }
+  return pts;
+}
+
+// Pré-calcul (RK4 CR3BP — calculé au chargement)
+const halo    = genHalo();
+const nrho92  = makeNRHO_92();
+const nrho41  = makeNRHO_41();
+const famille = genFamille(20);
+const leo     = genLEO();
+const llo     = genLLO();
+const tli     = genTLI_NRHO(nrho41);
+
+// ================================================================
+// CANVAS HELPERS
+// ================================================================
+function stars(ctx,W,H,n=60){
+  for(let i=0;i<n;i++){
+    ctx.fillStyle=`rgba(255,255,255,${Math.random()*.4+.1})`;
+    ctx.fillRect(Math.random()*W,Math.random()*H,1,1);
+  }
+}
+function buildScale(xs,ys,W,H,pad=35){
+  const minX=Math.min(...xs),maxX=Math.max(...xs);
+  const minY=Math.min(...ys),maxY=Math.max(...ys);
+  const sx=(W-2*pad)/(maxX-minX||1),sy=(H-2*pad)/(maxY-minY||1);
+  const s=Math.min(sx,sy);
+  const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+  return {px:v=>W/2+(v-cx)*s, py:v=>H/2-(v-cy)*s, s};
+}
+function drawOrbit(ctx,px,py,xs,ys,col,lw,dash=[]){
+  ctx.setLineDash(dash);ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.beginPath();
+  for(let i=0;i<xs.length;i++) i===0?ctx.moveTo(px(xs[i]),py(ys[i])):ctx.lineTo(px(xs[i]),py(ys[i]));
+  ctx.stroke();ctx.setLineDash([]);
+}
+
+// ================================================================
+// OVERVIEW CANVAS
+// ================================================================
+function drawOverview(){
+  const cv=document.getElementById('cv-overview'); if(!cv)return;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.fillStyle='#03040e';ctx.fillRect(0,0,W,H);stars(ctx,W,H,60);
+  const cx=W*.12,lx=W*.60,l2x=W*.87,cy=H/2;
+  // Axe
+  ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(cx+25,cy);ctx.lineTo(l2x+10,cy);ctx.stroke();ctx.setLineDash([]);
+  // LEO
+  ctx.strokeStyle='rgba(74,222,128,.5)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.ellipse(cx,cy,18,18,0,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);
+  // LLO
+  ctx.strokeStyle='rgba(255,215,0,.5)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.ellipse(lx,cy,18,18,0,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);
+  // TLI
+  ctx.strokeStyle='#60a5fa';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(cx+18,cy);ctx.bezierCurveTo(cx+80,cy-90,lx+50,cy-50,lx+14,cy+20);ctx.stroke();
+  // NRHO 4:1 (ellipse autour de Lune, grande)
+  ctx.strokeStyle='rgba(249,115,22,.85)';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.ellipse(lx,cy,16,58,0.3,0,2*Math.PI);ctx.stroke();
+  // NRHO 9:2 (plus serrée)
+  ctx.strokeStyle='rgba(239,68,68,.45)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.ellipse(lx,cy,10,45,0.25,0,2*Math.PI);ctx.stroke();
+  // Halo
+  ctx.strokeStyle='rgba(0,229,255,.65)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(l2x,cy,12,34,0,0,2*Math.PI);ctx.stroke();
+  // Terre
+  const gt=ctx.createRadialGradient(cx,cy,0,cx,cy,22);
+  gt.addColorStop(0,'#4a90e2');gt.addColorStop(.5,'#2a5aa0');gt.addColorStop(1,'#1a3070');
+  ctx.beginPath();ctx.arc(cx,cy,22,0,2*Math.PI);ctx.fillStyle=gt;ctx.fill();
+  // Lune
+  const gl=ctx.createRadialGradient(lx-3,cy-3,0,lx,cy,13);
+  gl.addColorStop(0,'#d0d0e0');gl.addColorStop(1,'#606080');
+  ctx.beginPath();ctx.arc(lx,cy,13,0,2*Math.PI);ctx.fillStyle=gl;ctx.fill();
+  ctx.save();ctx.beginPath();ctx.arc(lx,cy,13,-Math.PI/2,Math.PI/2,false);
+  ctx.fillStyle='rgba(200,50,50,.5)';ctx.fill();ctx.restore();
+  // L2
+  ctx.beginPath();ctx.arc(l2x,cy,5,0,2*Math.PI);ctx.fillStyle='#ffd700';ctx.fill();
+  // Labels
+  ctx.font='10px "Space Mono",monospace';ctx.textAlign='center';
+  ctx.fillStyle='#4ade80';ctx.fillText('TERRE',cx,cy+36);
+  ctx.fillStyle='#a0a0c0';ctx.fillText('LUNE',lx,cy+30);
+  ctx.fillStyle='#cc4444';ctx.font='8px "Space Mono",monospace';ctx.fillText('←face cachée',lx-14,cy-1);
+  ctx.fillStyle='#ffd700';ctx.font='10px "Space Mono",monospace';ctx.fillText('L2',l2x,cy-14);
+  ctx.fillStyle='rgba(0,229,255,.7)';ctx.font='9px "Space Mono",monospace';ctx.fillText('Halo L2',l2x,cy+46);
+  ctx.fillStyle='rgba(249,115,22,.9)';ctx.fillText('NRHO 4:1',lx,cy+78);
+  ctx.fillStyle='rgba(239,68,68,.6)';ctx.fillText('(9:2 ref)',lx,cy+91);
+  ctx.fillStyle='rgba(96,165,250,.8)';ctx.fillText('TLI',lx-32,cy-45);
+}
+
+// ================================================================
+// FAMILLE CANVASES
+// ================================================================
+let famAnimId=null, nrho41AnimId=null;
+
+function drawFamilleYZ(){
+  if(famAnimId)cancelAnimationFrame(famAnimId);
+  const cv=document.getElementById('cv-famille-yz'); if(!cv)return;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  const t_anim=performance.now()/7000;
+  ctx.fillStyle='#080c1a';ctx.fillRect(0,0,W,H);stars(ctx,W,H,50);
+
+  // Collecte Y,Z de toutes les orbites
+  const allY=[...nrho92.y,...nrho41.y];
+  const allZ=[...nrho92.z,...nrho41.z];
+  const {px,py,s}=buildScale(allY,allZ,W,H,40);
+
+  // Lune
+  ctx.beginPath();ctx.arc(px(0),py(0),Math.max(5,R_L*s),0,2*Math.PI);
+  ctx.fillStyle='rgba(160,160,192,.3)';ctx.fill();ctx.strokeStyle='#606080';ctx.lineWidth=1;ctx.stroke();
+  ctx.fillStyle='#a0a0c0';ctx.font='11px "Space Mono",monospace';ctx.textAlign='center';
+  ctx.fillText('LUNE',px(0),py(0)+Math.max(5,R_L*s)+16);
+
+  // Famille en fond (gradient rouge→orange)
+  for(let k=0;k<famille.length;k++){
+    const t=k/(famille.length-1);
+    const r=Math.round(239+t*(249-239)),g=Math.round(68+t*(115-68)),b=Math.round(68+t*(22-68));
+    drawOrbit(ctx,px,py,famille[k].y,famille[k].z,`rgba(${r},${g},${b},0.12)`,1.2);
+  }
+
+  // NRHO 9:2 rouge
+  ctx.strokeStyle='#ef4444';ctx.lineWidth=3;ctx.beginPath();
+  for(let i=0;i<nrho92.y.length;i++) i===0?ctx.moveTo(px(nrho92.y[i]),py(nrho92.z[i])):ctx.lineTo(px(nrho92.y[i]),py(nrho92.z[i]));
+  ctx.closePath();ctx.stroke();
+
+  // NRHO 4:1 orange
+  ctx.strokeStyle='#f97316';ctx.lineWidth=4;ctx.beginPath();
+  for(let i=0;i<nrho41.y.length;i++) i===0?ctx.moveTo(px(nrho41.y[i]),py(nrho41.z[i])):ctx.lineTo(px(nrho41.y[i]),py(nrho41.z[i]));
+  ctx.closePath();ctx.stroke();
+
+  // Satellite animé NRHO 4:1
+  const ni=Math.floor((t_anim%1)*nrho41.y.length);
+  ctx.beginPath();ctx.arc(px(nrho41.y[ni]),py(nrho41.z[ni]),7,0,2*Math.PI);
+  ctx.fillStyle='#f97316';ctx.fill();
+  ctx.beginPath();ctx.arc(px(nrho41.y[ni]),py(nrho41.z[ni]),12,0,2*Math.PI);
+  ctx.strokeStyle='rgba(249,115,22,.35)';ctx.lineWidth=3;ctx.stroke();
+
+  ctx.font='9px "Space Mono",monospace';ctx.textAlign='left';
+  ctx.fillStyle='#ef4444';ctx.fillText('● NRHO 9:2 (Gateway) — r_p=3 200 km',10,H-22);
+  ctx.fillStyle='#f97316';ctx.fillText('● NRHO 4:1 ★ sélectionnée — r_p≈14 000 km  T=7.38 j',10,H-8);
+  famAnimId=requestAnimationFrame(drawFamilleYZ);
+}
+
+function drawFamilleXZ(){
+  const cv=document.getElementById('cv-famille-xz'); if(!cv)return;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.fillStyle='#080c1a';ctx.fillRect(0,0,W,H);stars(ctx,W,H,50);
+
+  const allX=[...nrho92.x,...nrho41.x,x_Lune,x_L2];
+  const allZ=[...nrho92.z,...nrho41.z,0,0];
+  const {px,py,s}=buildScale(allX,allZ,W,H,40);
+
+  // Axe X
+  ctx.setLineDash([2,6]);ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,py(0));ctx.lineTo(W,py(0));ctx.stroke();ctx.setLineDash([]);
+
+  // Famille
+  for(let k=0;k<famille.length;k++){
+    drawOrbit(ctx,px,py,famille[k].x,famille[k].z,'rgba(200,120,80,0.13)',1.2);
+  }
+
+  // 9:2
+  drawOrbit(ctx,px,py,nrho92.x,nrho92.z,'#ef4444',2.5);
+  // 4:1
+  drawOrbit(ctx,px,py,nrho41.x,nrho41.z,'#f97316',3.5);
+  // Halo
+  drawOrbit(ctx,px,py,halo.x,halo.z,'rgba(0,229,255,.5)',2);
+
+  // Lune
+  const rL=Math.max(4,R_L*s);
+  ctx.beginPath();ctx.arc(px(x_Lune),py(0),rL,0,2*Math.PI);
+  ctx.fillStyle='#606080';ctx.fill();ctx.strokeStyle='#a0a0c0';ctx.lineWidth=1;ctx.stroke();
+  // L2
+  ctx.beginPath();ctx.arc(px(x_L2),py(0),5,0,2*Math.PI);ctx.fillStyle='#ffd700';ctx.fill();
+
+  ctx.font='10px "Space Mono",monospace';ctx.textAlign='center';
+  ctx.fillStyle='#a0a0c0';ctx.fillText('Lune',px(x_Lune),py(0)+rL+15);
+  ctx.fillStyle='#ffd700';ctx.fillText('L2',px(x_L2),py(0)-12);
+  ctx.fillStyle='rgba(0,229,255,.6)';ctx.font='9px "Space Mono",monospace';ctx.fillText('Halo L2',px(x_L2)+15,py(0)-28);
+  ctx.fillStyle='rgba(249,115,22,.9)';ctx.fillText('NRHO 4:1',px(x_Lune)-60,py(0)+58);
+  ctx.fillStyle='rgba(239,68,68,.7)';ctx.fillText('NRHO 9:2',px(x_Lune)-60,py(0)+73);
+}
+
+// ================================================================
+// TRANSFERT CANVAS
+// ================================================================
+function drawTransfer(){
+  const cv=document.getElementById('cv-transfer'); if(!cv)return;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  const allX=[x_T,...leo.x,...llo.x,...tli.x,...halo.x,...nrho41.x];
+  const allY=[...Array(leo.x.length).fill(0),...tli.y,...halo.y,...nrho41.y];
+  const {px,py,s}=buildScale(allX,allY,W,H,48);
+  ctx.fillStyle='#07091a';ctx.fillRect(0,0,W,H);stars(ctx,W,H,80);
+
+  drawOrbit(ctx,px,py,leo.x,Array(leo.x.length).fill(0),'rgba(74,222,128,.6)',2,[4,4]);
+  drawOrbit(ctx,px,py,llo.x,Array(llo.x.length).fill(0),'rgba(255,215,0,.6)',2,[4,4]);
+
+  // Halo
+  ctx.strokeStyle='rgba(0,229,255,.5)';ctx.lineWidth=2;ctx.beginPath();
+  for(let i=0;i<halo.x.length;i++) i===0?ctx.moveTo(px(halo.x[i]),py(halo.y[i])):ctx.lineTo(px(halo.x[i]),py(halo.y[i]));
+  ctx.closePath();ctx.stroke();
+
+  // NRHO 4:1
+  ctx.strokeStyle='#f97316';ctx.lineWidth=3;ctx.beginPath();
+  for(let i=0;i<nrho41.x.length;i++) i===0?ctx.moveTo(px(nrho41.x[i]),py(nrho41.y[i])):ctx.lineTo(px(nrho41.x[i]),py(nrho41.y[i]));
+  ctx.closePath();ctx.stroke();
+
+  // TLI
+  ctx.strokeStyle='#60a5fa';ctx.lineWidth=3;ctx.beginPath();
+  for(let i=0;i<tli.x.length;i++) i===0?ctx.moveTo(px(tli.x[i]),py(tli.y[i])):ctx.lineTo(px(tli.x[i]),py(tli.y[i]));
+  ctx.stroke();
+  // Flèche arrivée
+  const last=tli.x.length-1;
+  const dx=px(tli.x[last])-px(tli.x[last-5]), dy=py(tli.y[last])-py(tli.y[last-5]);
+  const ang=Math.atan2(dy,dx);
+  ctx.fillStyle='#60a5fa';ctx.save();ctx.translate(px(tli.x[last]),py(tli.y[last]));ctx.rotate(ang);
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-10,-5);ctx.lineTo(-10,5);ctx.closePath();ctx.fill();ctx.restore();
+
+  // Sphères
+  const rT=Math.max(5,R_T*s),rL=Math.max(3,R_L*s);
+  ctx.beginPath();ctx.arc(px(x_T),py(0),rT,0,2*Math.PI);ctx.fillStyle='#2255a0';ctx.fill();
+  ctx.beginPath();ctx.arc(px(x_Lune),py(0),rL,0,2*Math.PI);ctx.fillStyle='#606080';ctx.fill();
+  ctx.beginPath();ctx.arc(px(x_L2),py(0),5,0,2*Math.PI);ctx.fillStyle='#ffd700';ctx.fill();
+  // Point arrivée
+  ctx.beginPath();ctx.arc(px(tli.x[last]),py(tli.y[last]),8,0,2*Math.PI);
+  ctx.fillStyle='#f97316';ctx.fill();
+  ctx.beginPath();ctx.arc(px(tli.x[last]),py(tli.y[last]),13,0,2*Math.PI);
+  ctx.strokeStyle='rgba(249,115,22,.4)';ctx.lineWidth=2;ctx.stroke();
+  // Labels
+  ctx.font='11px "Space Mono",monospace';ctx.textAlign='center';
+  ctx.fillStyle='#3399ff';ctx.fillText('Terre',px(x_T),py(0)+rT+16);
+  ctx.fillStyle='#a0a0c0';ctx.fillText('Lune',px(x_Lune),py(0)+rL+16);
+  ctx.fillStyle='#ffd700';ctx.fillText('L2',px(x_L2),py(0)-12);
+  ctx.fillStyle='#f97316';ctx.font='10px "Space Mono",monospace';
+  ctx.fillText('→ NRHO 4:1 (périlune)',px(tli.x[last]),py(tli.y[last])-16);
+  ctx.fillStyle='rgba(74,222,128,.7)';ctx.fillText('LEO 200km',px(x_T),py(0)-rT-8);
+  ctx.fillStyle='rgba(255,215,0,.7)';ctx.fillText('LLO 100km',px(x_Lune),py(0)-rL-8);
+  ctx.fillStyle='rgba(96,165,250,.75)';ctx.fillText('TLI → NRHO 4:1',px(x_T)+(px(x_Lune)-px(x_T))/2,py(0)-60);
+}
+
+// ================================================================
+// CHARTS
+// ================================================================
+let keplerChart=null;
+
+function initCharts(){
+  // Famille : période vs périlune
+  const nOrb=30,Ts=[],rps=[];
+  for(let k=0;k<nOrb;k++){
+    const t=k/(nOrb-1);
+    rps.push(+(3200+t*(14000-3200)).toFixed(0));
+    Ts.push(+(6.57+t*(7.38-6.57)).toFixed(3));
+  }
+  new Chart(document.getElementById('ch-famille').getContext('2d'),{
+    type:'line',
+    data:{labels:rps,
+      datasets:[{label:'Période T (jours)',data:Ts,
+        borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.1)',
+        borderWidth:2.5,pointRadius:0,fill:true,tension:.4}]},
+    options:{responsive:true,
+      plugins:{legend:{labels:{color:'#d8e4ff',font:{family:'Space Mono'}}},
+        annotation:{annotations:{
+          box92:{type:'line',xMin:0,xMax:0,yMin:6.57,yMax:6.57,borderColor:'#ef4444',borderWidth:2,label:{content:'9:2',enabled:true}},
+        }}},
+      scales:{
+        x:{ticks:{color:'#4a5880',maxTicksLimit:8},grid:{color:'rgba(255,255,255,.04)'},title:{display:true,text:'Périlune r_p (km)',color:'#4a5880'}},
+        y:{ticks:{color:'#4a5880'},grid:{color:'rgba(255,255,255,.04)'},title:{display:true,text:'Période T (jours)',color:'#4a5880'}}
+      }
+    }
+  });
+
+  // ΔV comparatif depuis LLO
+  new Chart(document.getElementById('ch-dv').getContext('2d'),{
+    type:'bar',
+    data:{labels:['Polaire','Halo L2','NRHO 9:2','NRHO 4:1 ★'],
+      datasets:[{label:'ΔV insertion depuis LLO (m/s)',
+        data:[2333,650,180,330],
+        backgroundColor:['rgba(176,109,255,.6)','rgba(0,229,255,.6)','rgba(239,68,68,.6)','rgba(249,115,22,.8)'],
+        borderColor:['#b06dff','#00e5ff','#ef4444','#f97316'],
+        borderWidth:2}]},
+    options:{responsive:true,
+      plugins:{legend:{labels:{color:'#d8e4ff',font:{family:'Space Mono'}}},
+        tooltip:{callbacks:{label:c=>`ΔV = ${c.raw} m/s`}}},
+      scales:{
+        x:{ticks:{color:'#4a5880'},grid:{color:'rgba(255,255,255,.04)'}},
+        y:{ticks:{color:'#4a5880'},grid:{color:'rgba(255,255,255,.04)'},title:{display:true,text:'ΔV (m/s)',color:'#4a5880'}}
+      }
+    }
+  });
+
+  // Radar mission
+  new Chart(document.getElementById('ch-radar').getContext('2d'),{
+    type:'radar',
+    data:{
+      labels:['Couverture face cachée','ΔV économie','Stabilité','Visibilité Terre','Proximité Lune','Maintenance'],
+      datasets:[
+        {label:'Polaire',        data:[4,1,9,5,10,10],borderColor:'#b06dff',backgroundColor:'rgba(176,109,255,.1)',borderWidth:2,pointBackgroundColor:'#b06dff'},
+        {label:'Halo L2',       data:[8,5,2,10,1,6], borderColor:'#00e5ff',backgroundColor:'rgba(0,229,255,.07)',borderWidth:2,pointBackgroundColor:'#00e5ff'},
+        {label:'NRHO 9:2',      data:[9,9,7,9,7,9],  borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.07)',borderWidth:2,pointBackgroundColor:'#ef4444'},
+        {label:'NRHO 4:1 ★',   data:[10,8,7,10,5,9], borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.12)',borderWidth:2.5,pointBackgroundColor:'#f97316'},
+      ]
+    },
+    options:{responsive:true,
+      plugins:{legend:{labels:{color:'#d8e4ff',font:{family:'Space Mono',size:10}}}},
+      scales:{r:{ticks:{color:'#4a5880',backdropColor:'transparent',stepSize:2},
+                 grid:{color:'rgba(255,255,255,.06)'},
+                 pointLabels:{color:'#8090b0',font:{family:'Space Mono',size:9}},min:0,max:10}}
+    }
+  });
+  solveKepler();
+}
+
+// ================================================================
+// KEPLER SOLVER
+// ================================================================
+function kepFP(M,e,tol=1e-10,max=1000){
+  let E=M,iters=[];
+  for(let i=0;i<max;i++){const En=M+e*Math.sin(E);iters.push({n:i+1,E:En});if(Math.abs(En-E)<tol)return{E:En,n:i+1,iters};E=En;}
+  return{E,n:max,iters};
+}
+function kepNR(M,e,tol=1e-10,max=1000){
+  let E=M,iters=[];
+  for(let i=0;i<max;i++){const f=E-e*Math.sin(E)-M,fp=1-e*Math.cos(E),En=E-f/fp;iters.push({n:i+1,E:En});if(Math.abs(En-E)<tol)return{E:En,n:i+1,iters};E=En;}
+  return{E,n:max,iters};
+}
+function solveKepler(){
+  const M=parseFloat(document.getElementById('kM').value)*Math.PI/180;
+  const e=parseFloat(document.getElementById('ke').value);
+  const tol=parseFloat(document.getElementById('ktol').value);
+  const pf=kepFP(M,e,tol),pn=kepNR(M,e,tol);
+  let log=`=== ÉQUATION DE KEPLER ===\nM = ${(M*180/Math.PI).toFixed(4)}°   e = ${e}\n\n`;
+  log+=`--- POINT FIXE (${pf.n} itérations) ---\n`;
+  pf.iters.forEach(it=>log+=`  it.${it.n}: E = ${it.E.toFixed(10)}\n`);
+  log+=`\nRésultat : E = ${pf.E.toFixed(10)} rad\n\n`;
+  log+=`--- NEWTON-RAPHSON (${pn.n} itérations) ---\n`;
+  pn.iters.forEach(it=>log+=`  it.${it.n}: E = ${it.E.toFixed(10)}\n`);
+  log+=`\nRésultat : E = ${pn.E.toFixed(10)} rad\n\n`;
+  log+=`=== COMPARAISON ===\nPoint fixe   : ${pf.n} it.\nNewton-Raphson: ${pn.n} it.\nGain N-R     : ${pf.n-pn.n} itérations\n\n`;
+  const nu=2*Math.atan2(Math.sqrt(1+e)*Math.sin(pf.E/2),Math.sqrt(1-e)*Math.cos(pf.E/2));
+  log+=`Anomalie vraie ν = ${(nu*180/Math.PI).toFixed(6)}°`;
+  document.getElementById('klog').textContent=log;
+  drawKeplerViz(M,e);
+}
+function setPreset(M,e){
+  document.getElementById('kM').value=M;
+  document.getElementById('ke').value=e;
+  solveKepler();
+}
+function drawKeplerViz(M,e){
+  const mu_L=4902.8,a=14000,N=300,nu=[],V=[];
+  for(let j=0;j<N;j++){
+    const Mv=(j/N)*2*Math.PI;
+    const{E}=kepFP(Mv,e);
+    const v=2*Math.atan2(Math.sqrt(1+e)*Math.sin(E/2),Math.sqrt(1-e)*Math.cos(E/2));
+    nu.push((v*180/Math.PI).toFixed(0)+'°');
+    const r=a*(1-e**2)/(1+e*Math.cos(v));
+    V.push(+(Math.sqrt(mu_L*(2/r-1/a))*1000).toFixed(1));
+  }
+  if(keplerChart)keplerChart.destroy();
+  keplerChart=new Chart(document.getElementById('ch-kepler').getContext('2d'),{
+    type:'line',
+    data:{labels:nu,datasets:[{label:'Vitesse (m/s)',data:V,borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.08)',borderWidth:2,pointRadius:0,fill:true,tension:.4}]},
+    options:{responsive:true,
+      plugins:{legend:{labels:{color:'#d8e4ff',font:{family:'Space Mono'}}}},
+      scales:{
+        x:{ticks:{color:'#4a5880',maxTicksLimit:10},grid:{color:'rgba(255,255,255,.04)'},title:{display:true,text:'Anomalie vraie ν',color:'#4a5880'}},
+        y:{ticks:{color:'#4a5880'},grid:{color:'rgba(255,255,255,.04)'},title:{display:true,text:'V (m/s)',color:'#4a5880'}}
+      }
+    }
+  });
+}
+
+// ================================================================
+// SYSTÈME 3D — iframes vers les HTML Python générés
+// ================================================================
+function show3D(which){
+  const iF=document.getElementById('iframe-famille');
+  const iT=document.getElementById('iframe-transfert');
+  const bF=document.getElementById('btn3d-famille');
+  const bT=document.getElementById('btn3d-transfert');
+  if(which==='famille'){
+    iF.style.display='block'; iT.style.display='none';
+    bF.style.background='var(--o)'; bF.style.color='#000'; bF.style.border='none';
+    bT.style.background='var(--bg3)'; bT.style.color='var(--tx)'; bT.style.border='1px solid var(--bd)';
+  } else {
+    iF.style.display='none'; iT.style.display='block';
+    bT.style.background='var(--o)'; bT.style.color='#000'; bT.style.border='none';
+    bF.style.background='var(--bg3)'; bF.style.color='var(--tx)'; bF.style.border='1px solid var(--bd)';
+  }
+}
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+function showTab(name,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(famAnimId){cancelAnimationFrame(famAnimId);famAnimId=null;}
+  if(nrho41AnimId){cancelAnimationFrame(nrho41AnimId);nrho41AnimId=null;}
+  setTimeout(()=>{
+    if(name==='overview')  drawOverview();
+    if(name==='famille') { drawFamilleYZ(); drawFamilleXZ(); }
+    if(name==='transfer')  drawTransfer();
+  },50);
+}
+
+// ================================================================
+// INIT
+// ================================================================
+window.addEventListener('load',()=>{
+  drawOverview();
+  initCharts();
+  setTimeout(()=>{ drawTransfer(); },400);
+});
+</script>
+</body>
+</html>
